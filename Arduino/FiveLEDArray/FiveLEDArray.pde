@@ -1,9 +1,16 @@
 /*
   Take a byte-based serial input and display on a range of 5 LEDs
+	
+	Messages are recieved in 3-byte chunks, with a header, tag, and byte value.
+
  */
 
-// These constants won't change.  They're used to give names
-// to the pins used:
+
+#define HEADER		'|' // header for message
+#define ELEVATION	'E' // tag identifying elevation data
+#define ALL_ON	'X' // tag identifying elevation data
+#define MESSAGE_BYTES	3 // total bytes in a single message
+
 const int analogInPin = A0;  // Analog input pin that the potentiometer is attached to
 
 const int analogOutPin1 = 3;
@@ -18,29 +25,35 @@ int outputValue3 = 0;
 int outputValue4 = 0;     
 int outputValue5 = 0;    
 
-char buff[]= "0000000000";
-int masterValue;
 
-void setup() {
-  // initialize serial communications at 9600 bps:
-  Serial.begin(9600); 
-	masterValue = 0;
-}
+
+void setup() { Serial.begin(9600); }
 
 void loop() {
-	// Serial.println(masterValue);
-	displayRange(masterValue, -128, 127);
 	
-	//wait for serial communication
-	while(Serial.available()>0) {
-		for (int i=0; i<10; i++) {
-     buff[i]=buff[i+1];
-    }
-		buff[10] = Serial.read();
-		masterValue = int(buff[10]);
+	// make sure we've recieved the entire packet
+	if(Serial.available() >= MESSAGE_BYTES) {
+		// check for the header
+		if(Serial.read() == HEADER) {
+			// grab the tag
+			char tag = Serial.read();
+			if(tag == ELEVATION) {
+				// set the value
+				int value = Serial.read();
+				// Serial.print("R: ");
+				// Serial.println(value);
+				// Serial.println();
+				// display the value using LEDs
+				displayRange(value, 0, 255);
+			// for debugging
+			} else if (tag == ALL_ON) {
+				// If 'X' character is sent, all are turned on
+				writeAllLEDs(255);
+			}
+		}
 	}
 	
-	delay(100);
+	delay(500);
 }
 
 void writeAllLEDs(int value) {
@@ -54,11 +67,11 @@ void writeAllLEDs(int value) {
 void displayRange (int theValue, int lowerLimit, int upperLimit) {
 	
 	// essentially multiplying by 5, to make the range work with code below
-	int value = map(theValue, lowerLimit, upperLimit, 0, 2275);
+	int value = map(theValue, lowerLimit, upperLimit, 0, 1275);
 	
-	Serial.println(theValue);
-	Serial.println(value);
-	
+	// Serial.print("T: ");
+	// Serial.println(value);
+		
 	// LED 1
 	if(value <= 255) {
 		outputValue1 = value;
