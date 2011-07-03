@@ -9,11 +9,8 @@ public static final char HEADER = '|';
 public static final char ELEVATION = 'E';
 public static final int maxDelay = 1000;
 
-// 2D array
-// 0 = elevation
-// 1 = latitude
-// 2 = longitude
-float[][] points;
+
+PVector[] points;
 float maxEle, minEle;
 float PAD;
 float leftBound,rightBound,topBound,bottomBound;
@@ -38,8 +35,9 @@ void setup() {
   gpx.parse("2011-07-02.gpx"); // or a URL
 
 	points = processGPXData(gpx);
-	maxEle = max(points[0]);
-	minEle = min(points[0]);
+	float[] ePoints = getElevationPoints(points);
+	maxEle = max(ePoints);
+	minEle = min(ePoints);
 	println("Max: "+maxEle);
 	println("Min: "+minEle);
 
@@ -57,15 +55,26 @@ void setup() {
 }
 
 
+// take an array of vectors and return
+// an array of the y values
+float[] getElevationPoints(PVector[] p) {
+	float[] e = new float[p.length];
+	for(int i = 0; i < p.length; i++) {
+		e[i] = p[i].y;
+	}
+	return e;
+}
+
+
 void draw() {
 
 	// print elevations
-	if(currentPointIndex < points[0].length) {
+	if(currentPointIndex < points.length) {
 		/*println(points[0][currentPointIndex]);*/
-		float x = map(currentPointIndex, 0, points[0].length, leftBound, rightBound);
-		float y = map(points[0][currentPointIndex], minEle, maxEle, bottomBound, topBound);
+		float x = map(currentPointIndex, 0, points.length, leftBound, rightBound);
+		float y = map(points[currentPointIndex].y, minEle, maxEle, bottomBound, topBound);
 		point(x, y);
-		int serialOutput = int(map(points[0][currentPointIndex], minEle, maxEle, 0, 255));
+		int serialOutput = int(map(points[currentPointIndex].y, minEle, maxEle, 0, 255));
 		println(serialOutput);
 		sendMessage(ELEVATION, serialOutput);
 		currentPointIndex++;
@@ -78,7 +87,7 @@ void draw() {
 }
 
 
-float[][] processGPXData(GPX gpx) {
+PVector[] processGPXData(GPX gpx) {
 	int totalPoints = 0;
 	
 	for (int i = 0; i < gpx.getTrackCount(); i++) {
@@ -91,7 +100,7 @@ float[][] processGPXData(GPX gpx) {
 	  }
 	}
 	
-	float[][] p = new float[3][totalPoints];
+	PVector[] p = new PVector[totalPoints];
 	
 	int currentPoint = 0;
 	
@@ -102,11 +111,11 @@ float[][] processGPXData(GPX gpx) {
 	    for (int k = 0; k < trkseg.size(); k++) {
 	      GPXPoint pt = trkseg.getPoint(k);
 				
+				println("Elevation: "+pt.ele);
+				
 				// this hack avoids the erronious zero value
 				if(pt.ele != (double)0){
-					p[0][currentPoint] = (float)pt.ele;
-					p[1][currentPoint] = (float)pt.lat;
-					p[2][currentPoint] = (float)pt.lon;
+					p[currentPoint] = new PVector((float)pt.lat,(float)pt.ele,(float)pt.lon);
 					currentPoint++;
 				}
 	    }
@@ -118,11 +127,10 @@ float[][] processGPXData(GPX gpx) {
 	// println(currentPoint);
 	// println(totalPoints);
 	// println(p[0].length);
-	while(currentPoint < p[0].length) {
-		p[0] = shorten(p[0]);
-		p[1] = shorten(p[1]);
-		p[2] = shorten(p[2]);
-		// println(p[0].length);
+	while(currentPoint < p.length) {
+		PVector[] tmp = new PVector[p.length-1];
+		arrayCopy(p, tmp, p.length-1);
+		p = tmp;
 	}
 	
 	return p;
