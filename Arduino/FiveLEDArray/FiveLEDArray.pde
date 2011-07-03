@@ -53,7 +53,7 @@ void loop() {
 		}
 	}
 	
-	delay(500);
+	// delay(500);
 }
 
 void writeAllLEDs(int value) {

@@ -4,6 +4,10 @@ import tomc.gpx.*;
 GPX gpx;
 Serial port;
 
+// for sending messages
+public static final char HEADER = '|';
+public static final char ELEVATION = 'E';
+
 // 2D array
 // 0 = elevation
 // 1 = latitude
@@ -21,11 +25,6 @@ void setup() {
 	smooth();
 	
 	PAD = width*.1;
-	
-	
-	/*setup serial stuff*/
-	println("Available serial ports:");
-	println(Serial.list());
 	
 	port = new Serial(this, Serial.list()[0], 9600);  
  
@@ -115,22 +114,25 @@ void setup() {
 
 void draw() {
 
-		if(keyPressed == true) {
-
-			// print elevations
-			if(currentPointIndex < points[0].length) {
-				/*println(points[0][currentPointIndex]);*/
-				float x = map(currentPointIndex, 0, points[0].length, leftBound, rightBound);
-				float y = map(points[0][currentPointIndex], minEle, maxEle, bottomBound, topBound);
-				point(x, y);
-				byte serialOutput = byte(map(points[0][currentPointIndex], minEle, maxEle, 0, 255));
-				println(int(serialOutput));
-				port.write(serialOutput);
-				currentPointIndex++;
-				delay(100);
-			} else {
-				port.stop();
-			}
-	
+	// print elevations
+	if(currentPointIndex < points[0].length) {
+		/*println(points[0][currentPointIndex]);*/
+		float x = map(currentPointIndex, 0, points[0].length, leftBound, rightBound);
+		float y = map(points[0][currentPointIndex], minEle, maxEle, bottomBound, topBound);
+		point(x, y);
+		int serialOutput = int(map(points[0][currentPointIndex], minEle, maxEle, 0, 255));
+		println(serialOutput);
+		sendMessage(ELEVATION, serialOutput);
+		currentPointIndex++;
+		// delay(300);
+		} else {
+			currentPointIndex = 0;
 		}
+	
+}
+
+void sendMessage(char tag, int value){
+  port.write(HEADER);
+  port.write(tag);
+  port.write(value);
 }
