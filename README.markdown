@@ -6,9 +6,9 @@ An experiment with Processing, Arduino, and GPX data. I'm looking at ways of ana
 Goals:
 ------
 
-* Display (very) simple graph of elevation data in Processing
-* Play back elevation data on Arduino 5-LED array
-* Control speed of elevation data playback using potentiometer attached to Arduino.
+* <del>Display (very) simple graph of elevation data in Processing</del>
+* <del>Play back elevation data on Arduino 5-LED array</del>
+* <del>Control speed of elevation data playback using potentiometer attached to Arduino.</del>
 * More developed 2D display of elevation data in Processing, draw graph as loop.
 * Show "MPH" based on playback speed and geo data.
 * 3D display of GPX data.

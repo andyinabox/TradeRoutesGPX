@@ -52,8 +52,9 @@ void loop() {
 			}
 		}
 	}
-	
-	// delay(500);
+
+	Serial.println(analogRead(analogInPin));
+	delay(10);
 }
 
 void writeAllLEDs(int value) {

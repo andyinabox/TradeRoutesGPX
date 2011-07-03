@@ -7,6 +7,7 @@ Serial port;
 // for sending messages
 public static final char HEADER = '|';
 public static final char ELEVATION = 'E';
+public static final int maxDelay = 1000;
 
 // 2D array
 // 0 = elevation
@@ -18,6 +19,8 @@ float PAD;
 float leftBound,rightBound,topBound,bottomBound;
 
 int currentPointIndex;
+
+int currentDelay = 0;
 
 void setup() {
 	
@@ -124,11 +127,25 @@ void draw() {
 		println(serialOutput);
 		sendMessage(ELEVATION, serialOutput);
 		currentPointIndex++;
-		// delay(300);
+		delay(currentDelay);
 		} else {
 			currentPointIndex = 0;
 		}
 	
+}
+
+void serialEvent (Serial myPort) {
+	// get the ASCII string:
+	String inString = myPort.readStringUntil('\n');
+
+	if (inString != null) {
+		// trim off any whitespace:
+		inString = trim(inString);
+		// convert to an int and map to the screen height:
+		int inByte = int(inString); 
+		currentDelay = int(map(inByte, 0, 1023, 0, maxDelay));
+		println("Updated delay: "+currentDelay);
+	}
 }
 
 void sendMessage(char tag, int value){
